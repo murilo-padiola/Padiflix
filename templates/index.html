@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meus Filmes</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='logo1.ico') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #181818;
+            color: #ffffff;
+            padding: 20px;
+            margin: 0;
+        }
+        header {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+        h1 {
+            margin: 0;
+            color: #ffffff;
+            font-weight: 1000;
+        }
+        .sort-bar {
+            align-items: center;
+            justify-content: flex-start;
+            width: 100%;
+            margin-top: -15px;
+            margin-bottom: -20px;
+        }
+        .sort-label {
+            margin-right: 10px;
+            margin-left: 10px;
+            font-weight: bold;
+            font-size: 15px;
+            color: #ffffff;
+        }
+        .sort-button, .random-button {
+            margin: 0px 10px;
+            padding: 10px;
+            height: auto;
+            text-decoration: none;
+            color: #ffffff;
+            background-color: #333;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            transition: 0.5s ease;
+            font-weight: 600;
+            font-size: 16.5px;
+        }
+        .sort-button:hover, .random-button:hover {
+            background-color: #8C1E24;
+        }
+        select {
+            padding: 10px;
+            font-size: 16px;
+            height: auto;
+            border-radius: 5px;
+            margin-right: 10px;
+            font-weight: 600;
+            background-color: #333;
+            color: #ffffff;
+            border: none;
+        }
+        select:hover {
+            background-color: #8C1E24;
+            transition: 0.5s ease;
+        }
+        #movies {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .movie {
+            position: relative;
+            background-color: #1e1e1e;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 15px;
+            width: 200px;
+            transition: transform 0.5s ease, box-shadow 0.5s ease;
+        }
+        .movie:hover {
+            transform: scale(1.07);
+            box-shadow: 0px 0px 25px rgb(0, 0, 0);
+        }
+        .movie img {
+            width: 100%;
+            height: auto;
+            border-radius: 5px;
+            display: block;
+        }
+        .movie a {
+            display: block;
+            padding: 15px;
+            font-size: 18px;
+            text-align: center;
+            height: 350px;
+            text-decoration: none;
+            color: #ffffff;
+            font-weight: 500;
+            background-color: #282828;
+            transition: 1s ease;
+        }
+        .movie a:hover {
+            background-color: #8C1E24;
+        }
+        .rating {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: #ffdd57;
+            font-size: 18px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bolder;
+        }
+        .release-year {
+            font-size: 14px;
+            color: #b0b0b0;
+            margin-top: 5px;
+            font-weight: 500;
+        }
+        #back-to-top {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 45px;
+            padding: 20px 20px;
+            background-color: #3333338a;
+            color: hsl(0, 0%, 100%);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: 0.5s ease;
+        }
+        #back-to-top:hover {
+            background-color: #8C1E24;
+        }
+        ::-webkit-scrollbar {
+            width: 20px;
+        }
+        ::-webkit-scrollbar-track {
+            box-shadow: inset 0 0 100px #111111;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: #282828;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: #505050;
+            transition: 1s ;
+        }
+        .search-input {
+            height: 39px;
+            width: 20%;
+            padding: 0 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #333;
+            color: #f1f1f1;
+            font-size: 16px;
+            transition: box-shadow 0.2s ease-in-out;
+            margin-left: 10px;
+        }
+        .search-input:focus {
+            box-shadow: 1px 1px 12px #8C1E24;
+            outline: none;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelector('.search-input').addEventListener('input', function() {
+                filterMovies();
+            });
+        });
+        function filterMovies() {
+            const searchInput = document.querySelector('.search-input');
+            const searchQuery = normalizeText(searchInput.value);
+            const movies = document.querySelectorAll('.movie');
+
+            movies.forEach(movie => {
+                const movieName = normalizeText(movie.querySelector('a').textContent);
+                if (movieName.includes(searchQuery)) {
+                    movie.style.display = "flex"; 
+                } else {
+                    movie.style.display = "none";
+                }
+            });
+        }
+        function handlePlay(event) {
+            event.preventDefault();  
+            const link = event.currentTarget.getAttribute('href');
+            fetch(link)
+                .then(response => {
+                    if (response.ok) {
+                        window.open(link, '_blank');  
+                    } else {
+                        console.error('Erro ao tentar reproduzir o filme.');
+                    }
+                })
+                .catch(error => console.error('Erro:', error));
+        }
+        window.onscroll = function() {
+            const backToTopButton = document.getElementById('back-to-top');
+            if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
+                backToTopButton.style.display = "block";
+            } else {
+                backToTopButton.style.display = "none";
+            }
+        };
+        function backToTop() {
+            document.body.scrollTop = 0;
+            document.documentElement.scrollTop = 0;
+        }
+        function normalizeText(text) {
+            return text
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .toLowerCase();
+        }
+        function toggleOrder(button) {
+            const currentOrder = button.dataset.order;
+            const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+            button.dataset.order = newOrder;
+            button.textContent = newOrder === 'asc' ? '▲' : '▼';
+
+            const sortForm = document.getElementById('sort-form');
+            const orderInput = document.getElementById('order-input');
+            orderInput.value = newOrder;
+            sortForm.submit();
+        }
+    </script>
+</head>
+<body>
+    <header>
+        <div class="sort-bar">
+            <form id="sort-form" method="GET" action="/" style="display: flex; align-items: center;">
+                <img onclick="window.location.href='https://youtu.be/kkswHELUgIg'" style="height: 140px; margin-right:249px ;" src="/static/Banner.png" alt="Logo">
+                <span class="sort-label">Ordenar <br>por:</span>
+                <select name="sort_by" onchange="this.form.submit()">
+                    <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Nome</option>
+                    <option value="release_date" {% if sort_by == 'release_date' %}selected{% endif %}>Data de lançamento</option>
+                    <option value="rating" {% if sort_by == 'rating' %}selected{% endif %}>Nota</option>
+                    <option value="duration" {% if sort_by == 'duration' %}selected{% endif %}>Duração</option> 
+                </select>
+                <input type="hidden" id="order-input" name="order" value="{{ order }}">
+                <button type="button" class="sort-button" data-order="{{ order }}" onclick="toggleOrder(this)">
+                    {{ '▲' if order == 'asc' else '▼' }}
+                </button>
+                <button type="button" class="random-button" onclick="window.location.href='/random'">Aleatório</button>
+                <input type="text" class="search-input" placeholder="Pesquisar filmes...">
+                <div style="font-weight: bold; font-size: 15px; margin-left: 10px; text-align: right; position: absolute; right: 20px;">
+                    <p>Total de Filmes: {{ num_movies }}</p>
+                    <p style="margin-top: -11px;">Duração Total: {{ '%02d:%02d:%02d' % (total_duration // 3600, (total_duration // 60) % 60, total_duration % 60) }}</p>
+                    <p style="margin-top: -11px;">Espaço Total: {{ '%.2f GB' % total_size_gb }}</p>
+                </div>                
+            </form>
+            <div style="position: absolute; top: 20px; right: 20px; text-align: right; font-weight: 500; font-size: 20px; ">
+            </div>
+        </div>
+        <br>
+    </header>
+    <div id="movies">
+        {% for file in files %}
+        <div class="movie">
+            <a href="{{ url_for('play', filename=file.path) }}" onclick="handlePlay(event)">
+                <img src="{{ file.cover_art }}" alt="Cover Art">
+                <div class="rating">⭐ {{ file.rating }}</div>
+                <div class="release-year">
+                    📅 {{ file.release_date[:4] if file.release_date != 'N/A' else 'N/A' }} 
+                    ⏳ {{ '%02d:%02d' % (file.duration // 3600, (file.duration // 60) % 60) }}
+                </div>
+                <div>{{ file.name }}</div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    <button id="back-to-top" onclick="backToTop()">▲</button>
+</body>
+</html>
