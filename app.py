@@ -1,4 +1,4 @@
-import os 
+import os
 import subprocess
 import random
 import locale
@@ -9,7 +9,57 @@ from flask import Flask, render_template, request
 app = Flask(__name__)
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 base_dir = os.path.dirname(os.path.abspath(__file__))
-API_KEY = "ab9814a8f1d3307aac19e7acc2d5a7b0"
+
+def download_movie_cover(movie_name):
+    url = f"https://api.themoviedb.org/3/search/movie?api_key={API_KEY}&query={movie_name}"
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        if data['results']:
+            poster_path = data['results'][0].get('poster_path')
+            if poster_path:
+                img_url = f"https://image.tmdb.org/t/p/w500{poster_path}"
+                covers_dir = os.path.join(base_dir, 'static', 'covers')
+                os.makedirs(covers_dir, exist_ok=True)
+                img_path = os.path.join(covers_dir, f"{movie_name}.jpg")
+                img_data = requests.get(img_url).content
+                with open(img_path, 'wb') as f:
+                    f.write(img_data)
+                return img_path
+    return None
+
+def load_api_keys(file_path):
+    keys = {}
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if '=' in line:
+                    key, value = line.split('=', 1)
+                    keys[key.strip()] = value.strip().strip("'").strip('"')
+    except FileNotFoundError:
+        raise FileNotFoundError(f"Arquivo de chaves não encontrado: {file_path}")
+    return keys
+
+keys_file = os.path.join(base_dir, 'keys.txt')
+api_keys = load_api_keys(keys_file)
+API_KEY = api_keys.get("tmdbkey", "")
+OMDB_API_KEY = api_keys.get("omdbkey", "")
+
+def get_metacritic_score(movie_name):
+    url = f"http://www.omdbapi.com/?t={movie_name}&apikey={OMDB_API_KEY}"
+    response = requests.get(url)
+    
+    if response.status_code == 200:
+        data = response.json()
+        if 'Metascore' in data and data['Metascore'].isdigit():
+            return int(data['Metascore'])
+    return 'N/A'
+
+def save_ratings(ratings):
+    with open(os.path.join(base_dir, 'notas.txt'), 'w', encoding='utf-8') as file:
+        for movie_name, rating in ratings.items():
+            file.write(f"{movie_name} = {rating}\n")
 
 def get_movie_release_year(movie_name):
     url = f"https://api.themoviedb.org/3/search/movie?api_key={API_KEY}&query={movie_name}"
@@ -70,7 +120,7 @@ def get_video_duration(file_path):
         duration = float(probe['format']['duration'])
         return duration
     except ffmpeg.Error as e:
-        print(f"Erro ao obter duração do arquivo {file_path}: {str(e)}")
+        app.logger.error(f"Erro ao obter duração do arquivo {file_path}: {str(e)}")
         return 0
 
 def get_folder_size(folder_path):
@@ -83,15 +133,14 @@ def get_folder_size(folder_path):
 
 def update_movie_list(movie_folder):
     movie_list_path = os.path.join(base_dir, 'lista.txt')
-    current_files = [os.path.splitext(f)[0] for f in os.listdir(movie_folder) if f.endswith(('.mp4', '.mkv', '.avi'))]
+    current_files = [os.path.splitext(f)[0] for f in os.listdir(movie_folder) if f.endswith(('.mp4', '.mkv', '.avi', '.mov', '.flv', '.html'))]
     with open(movie_list_path, 'w', encoding='utf-8') as file:
         file.write("\n".join(current_files))
 
 @app.route('/')
 def index():
     movie_folder = os.path.join(base_dir, 'Filmes')
-    update_movie_list(movie_folder)  # Atualiza a lista de filmes
-
+    update_movie_list(movie_folder)
     ratings = load_ratings()
     release_dates = load_release_dates()
     durations = load_durations()
@@ -101,9 +150,10 @@ def index():
     num_movies = 0  
     has_new_durations = False
     has_new_release_dates = False  
+    has_new_ratings = False
 
     for filename in os.listdir(movie_folder):
-        if filename.endswith(('.mp4', '.mkv', '.avi')):
+        if filename.endswith(('.mp4', '.mkv', '.avi', '.mov', '.flv', '.html')):
             file_path = os.path.join(movie_folder, filename)
             file_name = os.path.splitext(filename)[0]
             cover_art = f'/static/covers/{file_name}.jpg'
@@ -132,16 +182,22 @@ def index():
                 })
             total_duration += duration  
             num_movies += 1  
+            if file_name not in ratings:
+                metascore = get_metacritic_score(file_name)
+                ratings[file_name] = metascore
+                has_new_ratings = True
 
-    total_size_bytes = get_folder_size(movie_folder)
-    total_size_gb = total_size_bytes / (1024 ** 3)
-
+    if has_new_ratings:
+        save_ratings(ratings)
     if has_new_durations:
         save_durations(durations)
     if has_new_release_dates:
         with open(os.path.join(base_dir, 'data.txt'), 'w', encoding='utf-8') as file:
             for movie_name, release_date in release_dates.items():
                 file.write(f"{movie_name} = {release_date}\n")
+
+    total_size_bytes = get_folder_size(movie_folder)
+    total_size_gb = total_size_bytes / (1024 ** 3)
 
     sort_by = request.args.get('sort_by', 'name')
     order = request.args.get('order', 'asc')
@@ -154,6 +210,9 @@ def index():
     elif sort_by == 'duration':
         files.sort(key=lambda x: x['duration'], reverse=(order == 'desc'))
 
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return render_template('movie_list.html', files=files)
+    
     return render_template('index.html', 
                            files=files, 
                            sort_by=sort_by, 
@@ -165,7 +224,9 @@ def index():
 @app.route('/play/<path:filename>')
 def play(filename):
     try:
-        subprocess.Popen(['start', '', filename], shell=True)
+        sanitized_filename = os.path.abspath(filename)
+        subprocess.run(['start', '', sanitized_filename], shell=True)
+        return '', 204  
     except Exception as e:
         return str(e), 500
 
@@ -177,7 +238,7 @@ def random_movie():
     durations = load_durations()
     files = []
     for filename in os.listdir(movie_folder):
-        if filename.endswith(('.mp4', '.mkv', '.avi')):
+        if filename.endswith(('.mp4', '.mkv', '.avi', '.mov', '.flv', '.html')):
             file_path = os.path.join(movie_folder, filename)
             file_name = os.path.splitext(filename)[0]
             cover_art = f'/static/covers/{file_name}.jpg'
@@ -193,7 +254,13 @@ def random_movie():
                 'duration': duration
             })
     selected_movie = random.choice(files)
-    return render_template('random.html', movie=selected_movie)
+    with open(os.path.join(base_dir, 'lista.txt'), 'r', encoding='utf-8') as f:
+        movie_list = [line.strip() for line in f.readlines() if line.strip()]
+    
+    return render_template('random.html', 
+                         movie=selected_movie,
+                         movie_list=movie_list,
+                         num_movies=len(movie_list))
 
 if __name__ == '__main__':
     app.run(debug=True)
