@@ -21,6 +21,8 @@ Para executar o Padiflix, você precisará ter instalado:
   ```
   Execute o aplicativo abrindo o `PadiFlix.bat`
 
+Coloque suas chaves da tmdb (https://developer.themoviedb.org/docs/getting-started) e da omdb (https://www.omdbapi.com/apikey.aspx) no keys.txt nos devidos lugares
+
 ## Personalização
 
 - Para adicionar filmes, basta colocá-los na pasta `Filmes/` em formato '.mp4', '.mkv', '.avi', '.mov', '.flv' ou até '.html' (usar HTML irá gerar problemas quanto à duração do filme, mas tem a vantagem de não gastar espaço quase algum).
