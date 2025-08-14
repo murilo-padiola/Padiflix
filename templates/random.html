@@ -14,6 +14,44 @@
             padding: 20px;
             margin: 0;
             text-align: center;
+            overflow: hidden;
+        }
+
+        #preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #181818;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .preloader-cover {
+            width: 120px;
+            height: 180px;
+            position: absolute;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transition: transform 0.8s ease-out, opacity 0.8s ease, width 0.8s ease-out, height 0.8s ease-out;
+            object-fit: cover;
+        }
+
+        .main-content {
+            display: none;
+            opacity: 0;
+            animation: fadeIn 0.5s forwards;
+            animation-delay: 0.5s;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
         }
 
         .movie {
@@ -34,10 +72,11 @@
 
         .movie a {
             display: block;
-            padding: 15px;
+            padding: 15px 15px;
             font-size: 18px;
             text-decoration: none;
             color: #ffffff;
+            font-weight: 1000;
             background-color: #282828;
             transition: background-color 0.3s ease;
         }
@@ -47,15 +86,22 @@
         }
 
         .rating {
-            position: absolute;
-            top: 115px;
-            right: 825px;
-            background-color: rgba(0, 0, 0, 0.7);
+            position: relative;
             color: #ffdd57;
             font-size: 18px;
-            padding: 5px 10px;
+            padding-bottom: 10px;
             border-radius: 5px;
-            font-weight: bold;
+            font-weight: 1000;
+            display: inline-block;
+            margin-top: -30px;
+            margin-left: 0px;
+        }
+
+        @media (max-width: 600px) {
+            .rating {
+                font-size: 16px;
+                padding: 4px 8px;
+            }
         }
 
         .button-container {
@@ -68,9 +114,9 @@
         .button {
             padding: 15px 30px;
             font-size: 18px;
-            font-weight: bold;
+            font-weight: 600;
             color: #ffffff;
-            background-color: #333;
+            background-color: #282828;
             border: none;
             border-radius: 5px;
             cursor: pointer;
@@ -82,7 +128,74 @@
             transform: scale(1.05);
         }
     </style>
+</head>
+<body>
+    <div id="preloader"></div>
+    
+    <div class="main-content">
+        <h1>Filme Aleatório</h1>
+        <div class="movie">
+            <a href="{{ url_for('play', filename=movie.path) }}" onclick="handlePlay(event)">
+                <img src="{{ movie.cover_art }}" alt="Cover Art">
+                <br>
+                <div class="rating" style="text-align: center;">⭐ {{ movie.rating }}</div>
+                <div style="text-align: center;">{{ movie.name }}</div>
+            </a>
+        </div>
+        <div class="button-container">
+            <button class="button" onclick="window.location.href='/'">↩ Voltar</button>
+            <button class="button" onclick="window.location.reload()">⟳ Roletar Novamente</button>
+        </div>
+    </div>
     <script>
+        const movieList = JSON.parse('{{ movie_list | tojson | safe }}');
+        const selectedMovie = "{{ movie.name }}";
+        const preloader = document.getElementById('preloader');
+        const mainContent = document.querySelector('.main-content');
+
+        function loadPreloader() {
+            const covers = [];
+            const screenWidth = window.innerWidth;
+            const screenHeight = window.innerHeight;
+            const selectedIndex = movieList.findIndex(movie => movie === selectedMovie);
+            const finalCard = document.querySelector('.movie img');
+            const finalRect = finalCard.getBoundingClientRect();
+            movieList.forEach((movie, index) => {
+                const img = new Image();
+                img.src = `/static/covers/${movie}.jpg`;
+                img.className = 'preloader-cover';
+                img.style.opacity = '0';
+                preloader.appendChild(img);
+                covers.push(img);
+                setTimeout(() => {
+                    img.style.opacity = '1';
+                    const angle = (Math.random() * 50) - 25; 
+                    const x = (Math.random() * (screenWidth - 120)) - (screenWidth / 2 - 60);
+                    const y = (Math.random() * (screenHeight - 180)) - (screenHeight / 2 - 90);
+                    img.style.transform = `translate(${x}px, ${y}px) rotate(${angle}deg)`;
+                }, index * 50);
+                setTimeout(() => {
+                    if (index === selectedIndex) {
+                        img.style.transition = 'transform 1s ease-out, opacity 1s ease, width 1s ease-out, height 1s ease-out';
+                        img.style.transform = `translate(${finalRect.left}px, ${finalRect.top}px) rotate(0deg)`;
+                        img.style.width = `300px`;
+                        img.style.height = `450px`;
+                        img.style.zIndex = '1001';
+                    } else {
+                        img.style.transition = 'transform 1s ease-out, opacity 1s ease, width 1s ease-out, height 1s ease-out';
+                        img.style.transform = `translate(${screenWidth / 2}px, ${screenHeight / 2}px) rotate(0deg)`;
+                        img.style.width = `0px`;
+                        img.style.height = `0px`;
+                    }
+                }, movieList.length * 50 + 500);
+            });
+            setTimeout(() => {
+                preloader.style.opacity = '0';
+                preloader.style.pointerEvents = 'none';
+                mainContent.style.display = 'block';
+            }, movieList.length * 50 + 1500);
+        }
+
         function handlePlay(event) {
             event.preventDefault();  
             const link = event.currentTarget.getAttribute('href');
@@ -94,21 +207,7 @@
                 })
                 .catch(error => console.error('Erro:', error));
         }
+        window.onload = loadPreloader;
     </script>
-</head>
-<body>
-    <h1>Filme Aleatório</h1>
-    <div class="movie">
-        <a href="{{ url_for('play', filename=movie.path) }}" onclick="handlePlay(event)">
-            <img src="{{ movie.cover_art }}" alt="Cover Art">
-            <br>
-            <div class="rating">⭐ {{ movie.rating }}</div>
-            <div>{{ movie.name }}</div>
-        </a>
-    </div>
-    <div class="button-container">
-        <button class="button" onclick="window.location.href='/'">↩ Voltar</button>
-        <button class="button" onclick="window.location.reload()">🔄 Roletar Novamente</button>
-    </div>
 </body>
 </html>
