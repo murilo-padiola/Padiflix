@@ -1,0 +1,13 @@
+{% for file in files %}
+<div class="movie">
+    <a href="{{ url_for('play', filename=file.path) }}" onclick="handlePlay(event)">
+        <img src="{{ file.cover_art }}" alt="Cover Art">
+        <div class="rating">⭐ {{ file.rating }}</div>
+        <div class="release-year">
+            📅 {{ file.release_date[:4] if file.release_date != 'N/A' else 'N/A' }}
+            ⏳ {{ '%02d:%02d' % (file.duration // 3600, (file.duration // 60) % 60) }}
+        </div>
+        <div>{{ file.name }}</div>
+    </a>
+</div>
+{% endfor %}
