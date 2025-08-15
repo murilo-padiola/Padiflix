@@ -93,23 +93,27 @@
         }
 
         .sort-bar {
-            display: grid;
-            grid-template-columns: auto 1fr auto;
-            align-items: center;
+            display: flex;
             width: 100%;
+            flex-direction: row;
+            align-items: center;
             margin-top: -15px;
             margin-bottom: -20px;
+            position: relative;
         }
 
         .header-left {
             display: flex;
             align-items: center;
+            flex-shrink: 0;
         }
 
         .header-center {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
             display: flex;
             align-items: center;
-            justify-content: center;
             flex-wrap: wrap;
             gap: 10px;
         }
@@ -118,11 +122,12 @@
             font-weight: bold;
             font-size: 15px;
             text-align: right;
+            flex-shrink: 0;
+            margin-left: auto;
         }
 
         .sort-label {
             margin-right: 10px;
-            margin-left: 10px;
             font-weight: bold;
             font-size: 15px;
             color: #ffffff;
@@ -278,7 +283,6 @@
 
         .search-input {
             height: 39px;
-            width: 20%;
             padding: 0 15px;
             border: none;
             border-radius: 5px;
@@ -286,7 +290,6 @@
             color: #f1f1f1;
             font-size: 16px;
             transition: box-shadow 0.2s ease-in-out;
-            margin-left: 10px;
         }
 
         .search-input:focus {
@@ -295,16 +298,56 @@
         }
 
         /* Responsive adjustments */
-        @media (max-width: 768px) {
+        @media (max-width: 1200px) and (min-width: 769px) {
             .sort-bar {
-                grid-template-columns: 1fr;
-                grid-template-rows: auto auto auto;
+                flex-direction: column;
+                align-items: center;
                 gap: 10px;
             }
 
-            .header-left, .header-center, .header-right {
+            .header-left {
+                justify-content: center;
+                width: 100%;
+            }
+
+            .header-center {
+                position: static;
+                transform: none;
+                justify-content: center;
+                width: auto;
+            }
+
+            .header-right {
                 justify-content: center;
                 text-align: center;
+                margin-left: 0;
+                width: 100%;
+            }
+
+            .search-input {
+                width: 50%;
+                margin: 0 auto;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sort-bar {
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .header-left, .header-right {
+                justify-content: center;
+                text-align: center;
+                width: 100%;
+            }
+
+            .header-center {
+                position: static;
+                transform: none;
+                justify-content: center;
+                width: 100%;
             }
 
             .header-right {
@@ -366,129 +409,133 @@
             .sort-label {
                 font-size: 14px;
             }
+
+            .search-input {
+                width: 90%;
+            }
         }
     </style>
-<script>
-    if (sessionStorage.getItem('introShown')) {
-        document.addEventListener('DOMContentLoaded', function () {
-            document.getElementById('intro').style.display = 'none';
-            const headerLogo = document.getElementById('header-logo');
-            headerLogo.classList.remove('hidden');
-            headerLogo.classList.add('visible');
-        });
-    } else {
-        sessionStorage.setItem('introShown', 'true');
-    }
-
-    document.addEventListener('DOMContentLoaded', function () {
-        console.log("Script carregado!");
-
-        document.addEventListener('scroll', function () {
-            const backToTopButton = document.getElementById('back-to-top');
-            if (window.scrollY > 100) {
-                backToTopButton.style.display = "block";
-            } else {
-                backToTopButton.style.display = "none";
-            }
-        });
-
-        window.backToTop = function() {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        setTimeout(() => {
-            const logoContainer = document.getElementById('logo-container');
-            const padiflixText = document.getElementById('padiflix-text');
-            const introBackground = document.getElementById('intro-background');
-            const headerLogo = document.getElementById('header-logo');
-
-            let delay = 250;
-            padiflixText.textContent = '';
-            const text = 'PADIFLIX';
-            for (let i = 0; i < text.length; i++) {
-                setTimeout(() => {
-                    padiflixText.textContent += text[i];
-                    padiflixText.style.opacity = 1;
-                    padiflixText.style.animation = 'revealText 1.125s forwards';
-                }, delay);
-                delay += 125;
-            }
-
-            setTimeout(() => {
-                logoContainer.style.top = '30px';
-                logoContainer.style.left = '20px';
-                logoContainer.style.transform = 'translate(0, 0)';
-                introBackground.style.opacity = 0;
-            }, delay + 1000);
-
-            setTimeout(() => {
+    <script>
+        if (sessionStorage.getItem('introShown')) {
+            document.addEventListener('DOMContentLoaded', function () {
                 document.getElementById('intro').style.display = 'none';
+                const headerLogo = document.getElementById('header-logo');
                 headerLogo.classList.remove('hidden');
                 headerLogo.classList.add('visible');
-            }, delay + 2000);
-        }, 100);
-
-        let isLoading = false;
-
-        function loadMovies() {
-            if (isLoading) return;
-            isLoading = true;
-
-            const sortBy = document.querySelector('[name="sort_by"]').value;
-            const order = document.querySelector('[name="order"]').value;
-            const searchQuery = document.querySelector('.search-input').value.toLowerCase();
-
-            const url = new URL(window.location.href);
-            url.searchParams.set('sort_by', sortBy);
-            url.searchParams.set('order', order);
-            url.searchParams.set('search', searchQuery);
-
-            fetch(url, {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            })
-            .then(response => response.text())
-            .then(html => {
-                document.getElementById('movies').innerHTML = html;
-                history.replaceState(null, '', url.toString());
-            })
-            .catch(error => console.error('Error:', error))
-            .finally(() => isLoading = false);
+            });
+        } else {
+            sessionStorage.setItem('introShown', 'true');
         }
 
-        document.querySelector('[name="sort_by"]').addEventListener('change', loadMovies);
-        document.querySelector('.sort-button').addEventListener('click', function() {
-            const newOrder = this.dataset.order === 'asc' ? 'desc' : 'asc';
-            this.dataset.order = newOrder;
-            this.textContent = newOrder === 'asc' ? '▲' : '▼';
-            document.querySelector('[name="order"]').value = newOrder;
-            loadMovies();
-        });
-        document.querySelector('.search-input').addEventListener('input', function() {
-            loadMovies();
-        });
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log("Script carregado!");
 
-        function handlePlay(event) {
-            event.preventDefault();
-            const link = event.currentTarget.getAttribute('href');
-            fetch(link)
-                .then(response => {
-                    if (response.ok) {
-                        window.open(link, '_blank');
-                    } else {
-                        console.error('Erro ao tentar reproduzir o filme.');
-                    }
+            document.addEventListener('scroll', function () {
+                const backToTopButton = document.getElementById('back-to-top');
+                if (window.scrollY > 100) {
+                    backToTopButton.style.display = "block";
+                } else {
+                    backToTopButton.style.display = "none";
+                }
+            });
+
+            window.backToTop = function() {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            setTimeout(() => {
+                const logoContainer = document.getElementById('logo-container');
+                const padiflixText = document.getElementById('padiflix-text');
+                const introBackground = document.getElementById('intro-background');
+                const headerLogo = document.getElementById('header-logo');
+
+                let delay = 250;
+                padiflixText.textContent = '';
+                const text = 'PADIFLIX';
+                for (let i = 0; i < text.length; i++) {
+                    setTimeout(() => {
+                        padiflixText.textContent += text[i];
+                        padiflixText.style.opacity = 1;
+                        padiflixText.style.animation = 'revealText 1.125s forwards';
+                    }, delay);
+                    delay += 125;
+                }
+
+                setTimeout(() => {
+                    logoContainer.style.top = '30px';
+                    logoContainer.style.left = '20px';
+                    logoContainer.style.transform = 'translate(0, 0)';
+                    introBackground.style.opacity = 0;
+                }, delay + 1000);
+
+                setTimeout(() => {
+                    document.getElementById('intro').style.display = 'none';
+                    headerLogo.classList.remove('hidden');
+                    headerLogo.classList.add('visible');
+                }, delay + 2000);
+            }, 100);
+
+            let isLoading = false;
+
+            function loadMovies() {
+                if (isLoading) return;
+                isLoading = true;
+
+                const sortBy = document.querySelector('[name="sort_by"]').value;
+                const order = document.querySelector('[name="order"]').value;
+                const searchQuery = document.querySelector('.search-input').value.toLowerCase();
+
+                const url = new URL(window.location.href);
+                url.searchParams.set('sort_by', sortBy);
+                url.searchParams.set('order', order);
+                url.searchParams.set('search', searchQuery);
+
+                fetch(url, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 })
-                .catch(error => console.error('Erro:', error));
-        }
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('movies').innerHTML = html;
+                    history.replaceState(null, '', url.toString());
+                })
+                .catch(error => console.error('Error:', error))
+                .finally(() => isLoading = false);
+            }
 
-        function normalizeText(text) {
-            return text
-                .normalize("NFD")
-                .replace(/[\u0300-\u036f]/g, "")
-                .toLowerCase();
-        }
-    });
-</script>
+            document.querySelector('[name="sort_by"]').addEventListener('change', loadMovies);
+            document.querySelector('.sort-button').addEventListener('click', function() {
+                const newOrder = this.dataset.order === 'asc' ? 'desc' : 'asc';
+                this.dataset.order = newOrder;
+                this.textContent = newOrder === 'asc' ? '▲' : '▼';
+                document.querySelector('[name="order"]').value = newOrder;
+                loadMovies();
+            });
+            document.querySelector('.search-input').addEventListener('input', function() {
+                loadMovies();
+            });
+
+            function handlePlay(event) {
+                event.preventDefault();
+                const link = event.currentTarget.getAttribute('href');
+                fetch(link)
+                    .then(response => {
+                        if (response.ok) {
+                            window.open(link, '_blank');
+                        } else {
+                            console.error('Erro ao tentar reproduzir o filme.');
+                        }
+                    })
+                    .catch(error => console.error('Erro:', error));
+            }
+
+            function normalizeText(text) {
+                return text
+                    .normalize("NFD")
+                    .replace(/[\u0300-\u036f]/g, "")
+                    .toLowerCase();
+            }
+        });
+    </script>
 </head>
 <body>
     <div id="intro">
