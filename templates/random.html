@@ -83,15 +83,16 @@
 
         .movie a:hover {
             background-color: #8C1E24;
+            transition: 0.5s ease;
         }
 
         .rating {
             position: relative;
-            color: #ffdd57;
+            color: #ffffff;
             font-size: 18px;
             padding-bottom: 10px;
             border-radius: 5px;
-            font-weight: 1000;
+            font-weight: 700;
             display: inline-block;
             margin-top: -30px;
             margin-left: 0px;
@@ -126,6 +127,7 @@
         .button:hover {
             background-color: #8C1E24;
             transform: scale(1.05);
+            transition: 0.5s ease;
         }
     </style>
 </head>
@@ -138,7 +140,10 @@
             <a href="{{ url_for('play', filename=movie.path) }}" onclick="handlePlay(event)">
                 <img src="{{ movie.cover_art }}" alt="Cover Art">
                 <br>
-                <div class="rating" style="text-align: center;">⭐ {{ movie.rating }}</div>
+                <div class="rating" style="text-align: center;">⭐ {{ movie.rating }}    
+                    ///
+                    ⏳ {{ '%02d:%02d' % (movie.duration // 3600, (movie.duration // 60) % 60) }}
+                </div>
                 <div style="text-align: center;">{{ movie.name }}</div>
             </a>
         </div>
