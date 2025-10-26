@@ -12,6 +12,7 @@
             background-color: #181818;
             color: #ffffff;
             padding: 20px;
+            outline: black;
             margin: 0;
             text-align: center;
             overflow: hidden;
@@ -81,21 +82,27 @@
             transition: background-color 0.3s ease;
         }
 
+        .movie {
+            --highlight: {{ movie.color }};
+        }
+
         .movie a:hover {
-            background-color: #8C1E24;
-            transition: 0.5s ease;
+            background-color: var(--highlight);
+            transition: background-color 0.6s ease;
         }
 
         .rating {
             position: relative;
             color: #ffffff;
-            font-size: 18px;
+            font-size: 15px;
             padding-bottom: 10px;
             border-radius: 5px;
-            font-weight: 700;
+            font-weight: 400;
             display: inline-block;
             margin-top: -30px;
             margin-left: 0px;
+            text-align: center;
+            padding-top: -5px;
         }
 
         @media (max-width: 600px) {
@@ -133,23 +140,28 @@
 </head>
 <body>
     <div id="preloader"></div>
-    
     <div class="main-content">
         <h1>Filme Aleatório</h1>
         <div class="movie">
             <a href="{{ url_for('play', filename=movie.path) }}" onclick="handlePlay(event)">
                 <img src="{{ movie.cover_art }}" alt="Cover Art">
                 <br>
-                <div class="rating" style="text-align: center;">⭐ {{ movie.rating }}    
+                <div class="rating">
+                    ⭐ {{ movie.rating }}   
                     ///
-                    ⏳ {{ '%02d:%02d' % (movie.duration // 3600, (movie.duration // 60) % 60) }}
+                    ⏳ {{ '%02d:%02d' % (movie.duration // 3600, (movie.duration // 60) % 60) }} 
+                    ///
+                    💾 {{ '%.2f'|format(movie.size_gb) }} GB
                 </div>
                 <div style="text-align: center;">{{ movie.name }}</div>
             </a>
         </div>
         <div class="button-container">
-            <button class="button" onclick="window.location.href='/'">↩ Voltar</button>
             <button class="button" onclick="window.location.reload()">⟳ Roletar Novamente</button>
+        </div>
+        <div>
+            <br>
+            <button class="button" onclick="window.location.href='/'">↩ Voltar</button>
         </div>
     </div>
     <script>
@@ -188,7 +200,8 @@
                         img.style.zIndex = '1001';
                     } else {
                         img.style.transition = 'transform 1s ease-out, opacity 1s ease, width 1s ease-out, height 1s ease-out';
-                        img.style.transform = `translate(${screenWidth / 2}px, ${screenHeight / 2}px) rotate(0deg)`;
+                        img.style.transitionDuration = '1.1s';
+                        img.style.transform = `translate(${screenWidth*0}px, ${screenHeight*0}px) rotate(0deg)`;
                         img.style.width = `0px`;
                         img.style.height = `0px`;
                     }
