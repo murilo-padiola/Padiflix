@@ -238,7 +238,7 @@
         }
 
         .release-year {
-            font-size: 14px;
+            font-size: 12px;
             color: #b0b0b0;
             margin-top: 5px;
             font-weight: 500;
@@ -360,13 +360,13 @@
             }
 
             #header-logo img {
-                height: 60px; /* Smaller logo for smaller screens */
+                height: 60px; 
                 max-height: 8vw;
                 min-height: 30px;
             }
 
             #header-logo span {
-                font-size: min(40px, 5vw); /* Smaller font for smaller screens */
+                font-size: min(40px, 5vw); 
             }
 
             #logo {
@@ -382,7 +382,7 @@
 
         @media (max-width: 480px) {
             #header-logo img {
-                height: 50px; /* Even smaller logo for very small screens */
+                height: 50px; 
                 max-height: 7vw;
                 min-height: 25px;
             }
@@ -564,6 +564,7 @@
                     <option value="release_date" {% if sort_by == 'release_date' %}selected{% endif %}>Data de lançamento</option>
                     <option value="rating" {% if sort_by == 'rating' %}selected{% endif %}>Nota</option>
                     <option value="duration" {% if sort_by == 'duration' %}selected{% endif %}>Duração</option>
+                    <option value="size" {% if sort_by == 'size' %}selected{% endif %}>Tamanho</option>
                 </select>
                 <input type="hidden" name="order" value="{{ order }}">
                 <button type="button" class="sort-button" data-order="{{ order }}">
@@ -586,10 +587,16 @@
             <a href="{{ url_for('play', filename=file.path) }}" onclick="handlePlay(event)">
                 <img src="{{ file.cover_art }}" alt="Cover Art">
                 <div class="rating">⭐ {{ file.rating }}</div>
-                <div class="release-year">
-                    📅 {{ file.release_date[:4] if file.release_date != 'N/A' else 'N/A' }}
-                    ⏳ {{ '%02d:%02d' % (file.duration // 3600, (file.duration // 60) % 60) }}
-                </div>
+                    <div class="release-year">
+                        📅 {{ file.release_date[:4] if file.release_date != 'N/A' else 'N/A' }}
+                        {% if file.duration is not none %}
+                            ⏳ {{ '%02d:%02d' % (file.duration // 3600, (file.duration // 60) % 60) }}
+                        {% else %}
+                            ⏳ N/A
+                        {% endif %}
+                        <br>
+                        💾 {{ '%.2f'|format(file.size_gb) }} GB
+                    </div>
                 <div>{{ file.name }}</div>
             </a>
         </div>
