@@ -18,6 +18,7 @@ Para executar o Padiflix, você precisará ter instalado:
 - Python 3.x (eu uso 3.13)
 - Um navegador web compatível (Chrome, Firefox, Edge, etc.)
 - As seguintes bibliotecas Python:
+  
   ```sh
   pip install flask ffmpeg-python requests colorthief
   ```
