@@ -8,6 +8,8 @@ Padiflix é um gerenciador de filmes desenvolvido em Python e HTML, permitindo o
 - Permite reprodução de vídeos nos formatos MP4, MKV, AVI, MOV, FLV, HTML.
 - Interface simples baseada em HTML.
 - Armazena informações sobre duração, data de lançamento e avaliações dos filmes, sendo a data de lançamento de forma automática.
+- Permite ordenar seus filmes por Nome, Data de lançamento, Nota, Duração ou Tamanho(espaço em gb) em ordem crescente ou decrescente.
+- Sortear um filme aleatório para quando você não quer escolher
 
 ## Requisitos
 
@@ -21,13 +23,13 @@ Para executar o Padiflix, você precisará ter instalado:
   ```
   Execute o aplicativo abrindo o `PadiFlix.bat`
 
-Coloque suas chaves da tmdb (https://developer.themoviedb.org/docs/getting-started) e da omdb (https://www.omdbapi.com/apikey.aspx) no keys.txt nos devidos lugares
+Coloque suas chaves da tmdb (https://developer.themoviedb.org/docs/getting-started) e da omdb (https://www.omdbapi.com/apikey.aspx) no keys.txt nos devidos espaços
 
 ## Personalização
 
 - Para adicionar filmes, basta colocá-los na pasta `Filmes/` em formato '.mp4', '.mkv', '.avi', '.mov', '.flv' ou até '.html' (usar HTML irá gerar problemas quanto à duração do filme, mas tem a vantagem de não gastar espaço quase algum).
 - Colocar as capas em .jpg no `/static/covers`, usando o mesmo título que os nomes dos arquivos dos filmes
-- As informações sobre duração, data de lançamento e avaliação estão armazenadas nos arquivos `durations.txt`, `data.txt` e `notas.txt`.
+- As informações sobre data de lançamento e avaliação estão armazenadas nos arquivos `data.txt` e `notas.txt`.
 - A data de lançamento e nota dos filmes é obtida automaticamente a partir das APIs TMDb e OMDB.
 
 ## Contribuição
