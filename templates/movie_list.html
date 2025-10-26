@@ -1,11 +1,17 @@
 {% for file in files %}
-<div class="movie">
+<div class="movie" style="--highlight: {{ file.color }};">
     <a href="{{ url_for('play', filename=file.path) }}" onclick="handlePlay(event)">
         <img src="{{ file.cover_art }}" alt="Cover Art">
         <div class="rating">⭐ {{ file.rating }}</div>
         <div class="release-year">
             📅 {{ file.release_date[:4] if file.release_date != 'N/A' else 'N/A' }}
-            ⏳ {{ '%02d:%02d' % (file.duration // 3600, (file.duration // 60) % 60) }}
+            {% if file.duration is not none %}
+                ⏳ {{ '%02d:%02d' % (file.duration // 3600, (file.duration // 60) % 60) }}
+            {% else %}
+                ⏳ N/A
+            {% endif %}
+            <br>
+            💾 {{ '%.2f'|format(file.size_gb) }} GB
         </div>
         <div>{{ file.name }}</div>
     </a>
